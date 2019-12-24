@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+
+{% block content %}
+This is signin.
+
+    <form action="{{ url_for('signin') }}" method="post">
+        <input type="text" name="username" placeholder="Create a username" required>
+        <button>Sign In</button>
+    </form>
+
+{% endblock %}

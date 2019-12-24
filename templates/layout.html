@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <!--My CSS-->
+    <link rel="stylesheet" href="../static/style.css">
+    
+    <title>Flack</title>
+</head>
+<body>
+
+    {% if session.username %}
+
+        <nav>
+            <ul>
+            <li><a href="">+ Channel</a></li>
+            <li><a href="">Channels</a></li>
+            <li><a href="">{{ session.username }}</a></li>
+            <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+
+    {% else %}
+
+        <nav>
+            <ul>
+                <li><a href="">FLACK</a></li>
+            </ul>
+        </nav>
+
+    {% endif %}
+
+    <div class="wrapper">
+
+        {% block content %}
+        {% endblock %}
+
+    </div>
+
+</body>
+</html>
