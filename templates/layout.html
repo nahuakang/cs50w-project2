@@ -7,6 +7,8 @@
 
     <!--My CSS-->
     <link rel="stylesheet" href="../static/style.css">
+
+    <!--MY JS-->
     
     <title>Flack</title>
 </head>
@@ -16,10 +18,25 @@
 
         <nav>
             <ul>
-            <li><a href="">+ Channel</a></li>
-            <li><a href="">Channels</a></li>
-            <li><a href="">{{ session.username }}</a></li>
-            <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                <li>
+                    <a href="{{ url_for('create') }}">+ Channel</a>
+                </li>
+                <li>
+                    <a href="">Channels</a>
+                    <ul>
+                        <li><a href="/channels/first">First Channel</a></li>
+                        <li><a href="/channels/second">Second Channel</a></li>
+                        <li><a href="/channels/third">Third Channel</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <ul>
+                <li>
+                    <a href="">{{ session.username }}</a>
+                </li>
+                <li>
+                    <a href="{{ url_for('logout') }}">Logout</a>
+                </li>
             </ul>
         </nav>
 
