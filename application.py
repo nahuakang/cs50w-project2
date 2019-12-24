@@ -11,7 +11,7 @@ app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 socketio = SocketIO(app)
 
 #app.config["SESSION_TYPE"] = "filesystem"
-#app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_PERMANENT"] = False
 
 
 """GLOBAL VARIABLES"""
@@ -42,6 +42,7 @@ def index():
 def signin():
     if request.method == "POST":
         username = request.form.get("username")
+        
         # Check if username exists in usernames
         if username in usernames:
             return render_template("error.html", message="This username is taken.")
@@ -60,7 +61,14 @@ def signin():
 @app.route("/logout")
 def logout():
     # remove the username from the session if it's there
-    session.pop("username", None)
+    try:
+        usernames.remove(session['username'])
+    except ValueError:
+        pass
+    
+    # remove cookie
+    session.clear()
+
     return redirect(url_for("index"))
 
 
@@ -74,7 +82,7 @@ def create():
 
         channels.append(newChannel)
 
-        return f"channel name is {newChannel}."
+        return redirect("/channels/" + newChannel)
 
     elif request.method == "GET":
         return redirect(url_for("index"))
@@ -85,7 +93,7 @@ def create():
 def enter(channel):
     if request.method == "GET":
         session["current_channel"] = channel
-        return f"{channel}: Template will be rendered once channel.html is created."
+        return render_template("channel.html")
 
     elif request.method == "POST":
         return redirect(url_for("index"))
