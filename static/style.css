@@ -1,48 +1,38 @@
+/** colors: https://coolors.co/f6f7eb-e94f37-393e41-3f88c5-44bba4 **/
+
 * {
     font-family: Verdana, Geneva, Tahoma, sans-serif;
     margin: 0;
 }
 
 body {
-    background: #eee;
+    background: #F6F7EB;
+    margin: 0;
 }
 
 .wrapper{
-    width: 100%;
     max-width: 960px;
-    margin: 0 auto;
+    margin: 0;
     text-align: center;
-    padding: 10px;
 }
 
+
+/** NAVIGATION **/
 nav {
-    background: #333;
+    background: #393E41;
+    display: flex;
+    justify-content: space-between;
 }
 
 nav ul {
+    display: flex;
+    flex: 1 1 0;
     list-style-type: none;
     padding: 0;
 }
 
-nav li {
-    padding: 0;
-}
-
-nav > li {
-    position: relative;
-}
-
-nav li ul {
-    display: none;
-    position: absolute;
-}
-
-/** https://stackoverflow.com/questions/26326084/nav-dropdown-menu-issues **/
-nav li:hover ul {
-    display: block;
-    width: 100%;
-    margin: 0 auto;
-    background: #333;
+.user-tab {
+    justify-content: flex-end;
 }
 
 nav a {
@@ -57,22 +47,55 @@ nav a:hover {
     background-color: #555;
 }
 
-/** FLEXBOX STYLES **/
-@media screen and (min-width: 768px) {
-    nav {
-        display: flex;
-        justify-content: space-between;
-    }
 
-    nav ul {
-        display: flex;
-        justify-content: space-around;
-    }
-
-    nav li:hover ul {
-        display: block;
-        width: auto;
-        margin: 0 auto;
-        background: #333;
-    }
+/** SIDEBAR **/
+.sidebar {
+    height: 100%;
+    width: 20%;
+    padding: 20px 5px;
+    position: fixed;
+    left: 0;
+    background: #3F88C5;
+    z-index: 1;
+    overflow-y: auto;
+    font-size: .8em;
 }
+
+.channel {
+    position: relative;
+    overflow-x: scroll;
+    white-space: nowrap;
+    padding: 0 10px;
+}
+
+.create-channel {
+    font-size: 1.2em;
+}
+
+.sidebar a {
+    text-decoration: none;
+    display: block;
+    padding: 10px 0;
+    text-align: left;
+}
+
+.sidebar p {
+    color: #fff;
+}
+
+.sidebar a p:hover {
+    color: #44BBA4;
+}
+
+
+/** CHAT PANEL **/
+.chat-panel {
+    text-align: center;
+    padding-top: 20px; /**Same as sidebar top padding**/
+    margin-left: 140px; /**Same as sidebar width**/
+}
+
+.chat-panel h2, p {
+    color: #393E41;
+}
+
