@@ -15,45 +15,40 @@
 <body>
 
     {% if session.username %}
-
-        <nav>
-            <ul>
-                <li>
-                    <a href="{{ url_for('create') }}">+ Channel</a>
-                </li>
-                <li>
-                    <a href="">Channels</a>
-                    <ul>
-                        <li><a href="/channels/first">First Channel</a></li>
-                        <li><a href="/channels/second">Second Channel</a></li>
-                        <li><a href="/channels/third">Third Channel</a></li>
-                    </ul>
-                </li>
-            </ul>
-            <ul>
-                <li>
-                    <a href="">{{ session.username }}</a>
-                </li>
-                <li>
-                    <a href="{{ url_for('logout') }}">Logout</a>
-                </li>
-            </ul>
-        </nav>
-
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('index') }}">FLACK</a></li>
+        </ul>
+        <ul class="user-tab">
+            <li>            
+                <a href="#" style="color: #44BBA4;"> {{ session.username }} </a>
+            </li>
+            <li>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </li>
+        </ul>
+    </nav>
     {% else %}
-
-        <nav>
-            <ul>
-                <li><a href="">FLACK</a></li>
-            </ul>
-        </nav>
-
+    <nav>
+        <ul>
+            <li><a href={{ url_for('index') }}>FLACK</a></li>
+        </ul>
+    </nav>
     {% endif %}
 
     <div class="wrapper">
 
-        {% block content %}
-        {% endblock %}
+        <div class="sidebar">
+            <div class="channel create-channel"><a href="{{ url_for('create') }}"><p>+ Channel</p></a></div>
+            {% for channel in channels %}
+            <div class="channel"><a href="{{ url_for('enter', channel=channel) }}"><p>{{channel}}</p></a></div>
+            {% endfor %}
+        </div>
+        
+        <div class="chat-panel">
+            {% block content %}
+            {% endblock %}
+        </div>
 
     </div>
 
