@@ -35,7 +35,7 @@ def login_required(f):
 @app.route("/")
 @login_required
 def index():
-    return render_template("index.html")
+    return render_template("index.html", channels=channels)
 
 
 @app.route("/signin", methods=["GET", "POST"])
@@ -93,7 +93,7 @@ def create():
 def enter(channel):
     if request.method == "GET":
         session["current_channel"] = channel
-        return render_template("channel.html")
+        return render_template("channel.html", channels=channels)
 
     elif request.method == "POST":
         return redirect(url_for("index"))
