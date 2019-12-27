@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
@@ -9,31 +10,37 @@
     <link rel="stylesheet" href="../static/style.css">
 
     <!--MY JS-->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.dev.js"></script>
+    {% block head %}
+    {% endblock %}
     
-    <title>Flack</title>
+    <title>
+        {% block title %}
+        {% endblock %}
+    </title>
 </head>
 <body>
 
     {% if session.username %}
-    <nav>
-        <ul>
-            <li><a href="{{ url_for('index') }}">FLACK</a></li>
-        </ul>
-        <ul class="user-tab">
-            <li>            
-                <a href="#" style="color: #44BBA4;"> {{ session.username }} </a>
-            </li>
-            <li>
-                <a href="{{ url_for('logout') }}">Logout</a>
-            </li>
-        </ul>
-    </nav>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">FLACK</a></li>
+            </ul>
+            <ul class="user-tab">
+                <li>            
+                    <a href="#" style="color: #44BBA4;"> {{ session.username }} </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('logout') }}">Logout</a>
+                </li>
+            </ul>
+        </nav>
     {% else %}
-    <nav>
-        <ul>
-            <li><a href={{ url_for('index') }}>FLACK</a></li>
-        </ul>
-    </nav>
+        <nav>
+            <ul>
+                <li><a href={{ url_for('index') }}>FLACK</a></li>
+            </ul>
+        </nav>
     {% endif %}
 
     <div class="wrapper">
@@ -41,7 +48,7 @@
         <div class="sidebar">
             <div class="channel create-channel"><a href="{{ url_for('create') }}"><p>+ Channel</p></a></div>
             {% for channel in channels %}
-            <div class="channel"><a href="{{ url_for('enter', channel=channel) }}"><p>{{channel}}</p></a></div>
+                <div class="channel"><a href="{{ url_for('enter', channel=channel) }}"><p>{{channel}}</p></a></div>
             {% endfor %}
         </div>
         
