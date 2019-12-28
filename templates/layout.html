@@ -9,8 +9,6 @@
     <!--My CSS-->
     <link rel="stylesheet" href="../static/style.css">
 
-    <!--MY JS-->
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.dev.js"></script>
     {% block head %}
     {% endblock %}
     
@@ -45,17 +43,8 @@
 
     <div class="wrapper">
 
-        <div class="sidebar">
-            <div class="channel create-channel"><a href="{{ url_for('create') }}"><p>+ Channel</p></a></div>
-            {% for channel in channels %}
-                <div class="channel"><a href="{{ url_for('enter', channel=channel) }}"><p>{{channel}}</p></a></div>
-            {% endfor %}
-        </div>
-        
-        <div class="chat-panel">
-            {% block content %}
-            {% endblock %}
-        </div>
+        {% block content %}
+        {% endblock %}
 
     </div>
 

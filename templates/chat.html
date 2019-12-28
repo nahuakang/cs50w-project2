@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+    <div class="sidebar">
+        <div class="channel create-channel"><a href="{{ url_for('create') }}"><p>+ Channel</p></a></div>
+        {% for channel in channels %}
+            <div class="channel"><p class="select-channel">{{channel}}</p></div>
+        {% endfor %}
+    </div>
+
+    <h1>This is channel {{ session.current_channel }}</h1>
+    
+    <div id="display-message-section">
+
+    </div>
+
+    <div id="input-area">
+
+        <input type=text id="user-message" placeholder="Type here" autocomplete="off">
+        <button type="button" id="send-message">Send</button>
+
+    </div>
+
+    <!-- 
+        Get Username from chat() in application.py 
+        https://stackoverflow.com/questions/3244361/can-i-access-variables-from-another-file
+    -->
+    <script type="text/javascript"> 
+        // this way, we can directly use username in our socketio.js file
+        const username = `{{ username }}`; // |e to change special character in username to unicode values
+        //var channel = `{{ session["currentChannel"] }}`;
+    </script>
+
+    <!-- Custom/Non-SocketIO JS -->
+    <script src={{ url_for("static", filename="scripts/chat_page.js") }}></script>
+
+    <!-- SocketIO JS -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.dev.js"></script>
+
+    <!-- Custom SocketIO JS -->
+    <script src={{ url_for("static", filename="scripts/socketio.js") }}></script>
+
+{% endblock %}
