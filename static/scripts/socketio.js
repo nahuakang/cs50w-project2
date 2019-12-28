@@ -2,16 +2,21 @@
 document.addEventListener("DOMContentLoaded", () => {
 
     console.log("current user is " + username); //debug
-    console.log("current channel is " + channel); //debug
 
     // connect to websocket
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
-    
-    //let channel = "Lounge";
-    socket.on('connect', ()=> {
-        console.log("socket is connected to channel: " + channel); //debug
 
-        joinChannel(channel);
+    socket.on('connect', ()=> {
+        // Remember channel before closing window via localStorage as Flask session does not save custom 'currentChannel' key
+        channel = window.localStorage.getItem("currentChannel");
+
+        if (channel) {
+            joinChannel(channel);
+        } else {
+            channel = "Lounge";
+            window.localStorage.setItem("currentChannel", channel);
+            joinChannel(channel);
+        }
     });
 
     socket.on('message', data => {
@@ -58,7 +63,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 msg = `You are already in the channel ${newChannel}`;
                 printSystemMessage(msg);
             } else {
-                console.log("you were in a different channel -> " + channel); //debug
                 leaveChannel(channel); // leave current channel
                 channel = newChannel; // update current channel to new channel
                 joinChannel(channel);  // join new channel
@@ -89,6 +93,8 @@ document.addEventListener("DOMContentLoaded", () => {
         // use emit since it's a custom event because send will lead to 'message' bucket
         var data = {'username': username, 'channel': channel}; //debug
         console.log("joining " + channel); //debug
+
+        window.localStorage.setItem("currentChannel", channel);
         
         socket.emit('join', {'username': username, 'channel': channel});
 
