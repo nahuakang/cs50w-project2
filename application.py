@@ -93,6 +93,7 @@ def create():
 
         if newChannel in channels:
             session['currentChannel'] = newChannel
+            
             return redirect(url_for("chat"))
 
         channels.append(newChannel)
