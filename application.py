@@ -113,9 +113,10 @@ def leave(data):
 
 @socketio.on("message")
 def message(data):
-    print(f"\n\n{data}\n\n")
+    print(f"\n\n msg is {data['msg']} \n username is {data['username']} \n channel is {data['channel']}\n\n") #debug
     # automatically send to event "message" to clients: https://stackoverflow.com/a/13767655
     send({"msg": data["msg"], "username": data["username"], "timestamp": strftime("%b-%d %I: %M%p", localtime())}, room=data["channel"])
+    print("message sent via socketio back to client") #debug
 
 
 if __name__ == "__main__":
