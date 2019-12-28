@@ -1,41 +1,45 @@
-// NOTE: username is embedded in chat.html under script tag
+// NOTE: username and channel are embedded in chat.html under script tag
 document.addEventListener("DOMContentLoaded", () => {
-    // connect to websocket
-    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
-    let channel = "Lounge";
 
     console.log("current user is " + username); //debug
     console.log("current channel is " + channel); //debug
 
-    // when connected, configure client side
-    socket.on('connect', function(){
-            joinChannel();
+    // connect to websocket
+    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+    
+    //let channel = "Lounge";
+    socket.on('connect', ()=> {
+        console.log("socket is connected to channel: " + channel); //debug
+
+        joinChannel(channel);
     });
 
     socket.on('message', data => {
-        console.log("we are now back on message event in client");
+        console.log("we are now back on message event in client"); //debug
 
-        const p = document.createElement('p');
-        const span_username = document.createElement('span');
-        const br = document.createElement('br');
-        const span_timestamp = document.createElement('span');
+        if (data.chatHistory) {
+            // if data.chatHistory exists, it is for server event 'join' via flask-socketio send
+            // first load the maximum 100 messages to the channel
+            for (let i = 0; i < data.chatHistory.length; i++) {
+                formatMessage(data.chatHistory[i]);
+            }
 
-        if (data.username) {
-            span_username.innerHTML = data.username;
-            span_timestamp.innerHTML = data.timestamp;
-            p.innerHTML = span_username.innerHTML + br.outerHTML + data.msg + br.outerHTML + span_timestamp.innerHTML; // br is an object, br.outerHTML is str
+            // then load the announcement that the user has joined the channel
+            printSystemMessage(data.msg);
 
-            console.log("p is" + p); //debug
+        } else if (data.username) {
+            formatMessage(data);
 
-            document.querySelector("#display-message-section").append(p);
         } else {
-            printSysMsg(data.msg);
+            // finally, it should be for server event 'leave' via flask-socketio send
+            printSystemMessage(data.msg);
         }
     });
 
     // Send message
     document.querySelector("#send-message").onclick = () => {
         console.log(document.querySelector("#user-message").value); //debug
+        
         socket.send({"msg": document.querySelector("#user-message").value, "username": username, "channel": channel});
 
         // clear the input area
@@ -52,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             if (newChannel === channel) {
                 msg = `You are already in the channel ${newChannel}`;
-                printSysMsg(msg);
+                printSystemMessage(msg);
             } else {
                 console.log("you were in a different channel -> " + channel); //debug
                 leaveChannel(channel); // leave current channel
@@ -63,29 +67,34 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // print system message when user joins or leaves a channel
-    var printSysMsg = function(msg) {
+    var printSystemMessage = function(msg) {
         const p = document.createElement('p');
         p.innerHTML = msg;
         document.querySelector("#display-message-section").append(p);
     };
 
     // leave a channel
-    var leaveChannel = function() {
+    var leaveChannel = function(channel) {
         // emits a message containing at least 'username' and 'channel' to server event 'leave'
         // use emit since it's a custom event because send will lead to 'message' bucket
         var data = {'username': username, 'channel': channel}; //debug
-        console.log("leaving " + data.channel); //debug
+        console.log("leaving " + channel); //debug
         socket.emit('leave', {'username': username, 'channel': channel});
 
     };
 
     // join a channel
-    var joinChannel = function() {
+    var joinChannel = function(channel) {
         // emits a message containing at least 'username' and 'channel' to server event 'join'
         // use emit since it's a custom event because send will lead to 'message' bucket
         var data = {'username': username, 'channel': channel}; //debug
-        console.log("joining " + data.channel); //debug
+        console.log("joining " + channel); //debug
+        
         socket.emit('join', {'username': username, 'channel': channel});
+
+        // change heading to proper channel name
+        var channelHeading = document.querySelector("#channel-name-content");
+        channelHeading.innerText = channel;
 
         // clear message in display-message-section to start a new chat
         document.querySelector("#display-message-section").innerHTML = '';
@@ -93,4 +102,20 @@ document.addEventListener("DOMContentLoaded", () => {
         // put autofocus on text box
         document.querySelector("#user-message").focus();
     };
+
+    var formatMessage = function(data) {
+        // Create message skeleton
+        const p = document.createElement('p');
+        const span_username = document.createElement('span');
+        const br = document.createElement('br');
+        const span_timestamp = document.createElement('span');
+
+        // populate and construct message
+        span_username.innerHTML = data.username;
+        span_timestamp.innerHTML = data.timestamp;
+        p.innerHTML = span_username.innerHTML + br.outerHTML + data.msg + br.outerHTML + span_timestamp.innerHTML; // br is an object, br.outerHTML is str
+
+        // display message to channel
+        document.querySelector("#display-message-section").append(p);
+    }
 });
