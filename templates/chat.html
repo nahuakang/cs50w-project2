@@ -9,7 +9,7 @@
         {% endfor %}
     </div>
 
-    <h1>This is channel {{ session.current_channel }}</h1>
+    <h1 id="channel-name">This is channel <span id="channel-name-content">channel<span></h1>
     
     <div id="display-message-section">
 
@@ -29,7 +29,7 @@
     <script type="text/javascript"> 
         // this way, we can directly use username in our socketio.js file
         const username = `{{ username }}`; // |e to change special character in username to unicode values
-        //var channel = `{{ session["currentChannel"] }}`;
+        var channel = `{{ session["currentChannel"] }}`; // need to reassign
     </script>
 
     <!-- Custom/Non-SocketIO JS -->
