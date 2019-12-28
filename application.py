@@ -1,13 +1,14 @@
 # Run "flask run --no-reload"
 import os
 
+from time import localtime, strftime
 from functools import wraps
 
 from flask import Flask, redirect, render_template, request, session, url_for
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO, send, emit, join_room, leave_room
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+app.config["SECRET_KEY"] = "something-unique" #os.getenv("SECRET_KEY")
 socketio = SocketIO(app)
 
 #app.config["SESSION_TYPE"] = "filesystem"
@@ -16,7 +17,7 @@ app.config["SESSION_PERMANENT"] = False
 
 """GLOBAL VARIABLES"""
 usernames = []
-channels = []
+channels = ["Lounge", "News", "Games", "Coding"]
 
 
 # Login Required Decorator
@@ -52,7 +53,7 @@ def signin():
         # https://stackoverflow.com/a/55055558
         session.permanent = True
 
-        return redirect(url_for("index"))
+        return redirect(url_for("chat"))
 
     elif request.method == "GET":
         return render_template("signin.html")
@@ -78,22 +79,44 @@ def create():
         newChannel = request.form.get("channel-name")
 
         if newChannel in channels:
-            return render_template("error.html", message="This channel is already created.")
+            return redirect(url_for("chat"))
 
         channels.append(newChannel)
+        session["currentChannel"] = newChannel
 
-        return redirect("/channels/" + newChannel)
+        return redirect(url_for("chat"))
 
     elif request.method == "GET":
         return redirect(url_for("index"))
 
 
-@app.route("/channels/<channel>", methods=["GET", "POST"])
+@app.route("/chat", methods=["GET", "POST"])
 @login_required
-def enter(channel):
-    if request.method == "GET":
-        session["current_channel"] = channel
-        return render_template("channel.html", channels=channels)
+def chat():
+    return render_template("chat.html", channels=channels, username=session["username"])
 
-    elif request.method == "POST":
-        return redirect(url_for("index"))
+
+@socketio.on("join")
+def join(data):
+    print(f"\n\n{data}\n\n") #debug
+    # current channel has to be sent from the client
+    join_room(data['channel'])
+    send({"msg": data["username"] + " has joined the channel " + data["channel"]}, room=data["channel"]) #only sends to data["room"]
+
+
+@socketio.on("leave")
+def leave(data):
+    print(f"\n\n trying to leave the room with data: {data}\n\n") #debug
+    leave_room(data['channel'])
+    send({"msg": data["username"] + " has left the channel " + data["channel"]}, room=data["channel"])
+
+
+@socketio.on("message")
+def message(data):
+    print(f"\n\n{data}\n\n")
+    # automatically send to event "message" to clients: https://stackoverflow.com/a/13767655
+    send({"msg": data["msg"], "username": data["username"], "timestamp": strftime("%b-%d %I: %M%p", localtime())}, room=data["channel"])
+
+
+if __name__ == "__main__":
+    socketio.run(app, debug=True)
