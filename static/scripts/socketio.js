@@ -6,15 +6,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     console.log("current user is " + username); //debug
     console.log("current channel is " + channel); //debug
-    
+
     // when connected, configure client side
-    /* socket.on('connect', function(){
-        socket.on("connect", () => {
-            socket.send({'msg': "I am connected.", 'username': username, 'channel': channel}); // automatically send to event in server called "message"
-        });
-    }); */
+    socket.on('connect', function(){
+            joinChannel();
+    });
 
     socket.on('message', data => {
+        console.log("we are now back on message event in client");
+
         const p = document.createElement('p');
         const span_username = document.createElement('span');
         const br = document.createElement('br');
@@ -24,6 +24,9 @@ document.addEventListener("DOMContentLoaded", () => {
             span_username.innerHTML = data.username;
             span_timestamp.innerHTML = data.timestamp;
             p.innerHTML = span_username.innerHTML + br.outerHTML + data.msg + br.outerHTML + span_timestamp.innerHTML; // br is an object, br.outerHTML is str
+
+            console.log("p is" + p); //debug
+
             document.querySelector("#display-message-section").append(p);
         } else {
             printSysMsg(data.msg);
