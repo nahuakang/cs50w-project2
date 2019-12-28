@@ -89,5 +89,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // clear message in display-message-section to start a new chat
         document.querySelector("#display-message-section").innerHTML = '';
+
+        // put autofocus on text box
+        document.querySelector("#user-message").focus();
     };
 });
