@@ -40,11 +40,15 @@ def login_required(f):
 @app.route("/")
 @login_required
 def index():
+    print(f"\ngoing through / to redirect to chat. Session details: {session}\n") #debug
+
     return redirect(url_for("chat"))
 
 
 @app.route("/signin", methods=["GET", "POST"])
 def signin():
+    print("\ngoing through /signin to redirect to chat\n") #debug
+
     if request.method == "POST":
         username = request.form.get("username")
         
@@ -56,8 +60,9 @@ def signin():
         usernames.append(username)
         
         # First time sign in, set currentChannel to "Lounge" for chat.html
-        session["currentChannel"] = "Lounge"
-        
+        """ if "currentChannel" not in session:
+            session["currentChannel"] = "Games" """
+
         # https://stackoverflow.com/a/55055558
         session.permanent = True
 
@@ -87,6 +92,7 @@ def create():
         newChannel = request.form.get("channel-name")
 
         if newChannel in channels:
+            session['currentChannel'] = newChannel
             return redirect(url_for("chat"))
 
         channels.append(newChannel)
@@ -107,20 +113,21 @@ def create():
 @app.route("/chat", methods=["GET", "POST"])
 @login_required
 def chat():
-    print(f"Landing into chat.html, current channel is {session['currentChannel']}") #debug
-
     return render_template("chat.html", channels=channels, username=session["username"])
 
 
 @socketio.on("join")
 def join(data):
-    print(f"\n\n{data}\n\n") #debug
+    #print(f"\n server join event chanel: {data} \n") #debug
     
     # current channel has to be sent from the client
     join_room(data['channel'])
 
     # update session currentChannel
     session["currentChannel"] = data['channel']
+
+    print(f"\n server join event current channel changed to: {session['currentChannel']} \n") #debug
+    print(f"\n session info: {session} \n")
 
     # convert chatHistory from deque to list for JSON serialization: https://stackoverflow.com/a/5773404/6297414
     channelHistory = list(chatHistory[data["channel"]])
@@ -132,9 +139,10 @@ def join(data):
 
 @socketio.on("leave")
 def leave(data):
-    print(f"\n\n trying to leave the room with data: {data}\n\n") #debug
+    print(f"\n trying to leave the channel: {data['channel']} \n") #debug
     
     leave_room(data['channel'])
+
     send({"msg": data["username"] + " has left the channel " + data["channel"]}, room=data["channel"])
 
 
@@ -150,7 +158,7 @@ def message(data):
     ##################################################### Store new message in chat history
     chatHistory[data['channel']].append(timestampedData)
 
-    print("message sent via socketio back to client") #debug
+    print("\n message sent via socketio back to client \n") #debug
 
 
 if __name__ == "__main__":
