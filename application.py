@@ -49,8 +49,8 @@ def index():
 
 @app.route("/signin", methods=["GET", "POST"])
 def signin():
-    print("\ngoing through /signin to redirect to chat\n") #debug
-    print(f"\n Before signin, these users are logged in: {usernames} \n") #debug
+    print("\n <--- Going through /signin to redirect to chat ---> \n") #debug
+    print(f"\n <--- Before signin, these users are logged in: {usernames} --->\n") #debug
 
     if request.method == "POST":
         username = request.form.get("username")
@@ -59,7 +59,9 @@ def signin():
         if username in usernames:
             return render_template("error.html", message="This username is taken.")
 
+        # Update session.username
         session["username"] = username
+        # Log username so others cannot use it
         usernames.append(username)
 
         # https://stackoverflow.com/a/55055558
@@ -73,7 +75,7 @@ def signin():
 
 @app.route("/logout")
 def logout(): 
-    # remove username from usernames list, note potential IndexError/ValueError
+    # remove username from usernames list, note potential erros include IndexError/ValueError
     try:
         usernames.remove(session['username'])
     except:
@@ -123,9 +125,9 @@ def join(data):
     # update session currentChannel
     session["currentChannel"] = data['channel']
 
-    print(f"\n server join event current channel changed to: {session['currentChannel']} \n") #debug
-    print(f"\n AFTER JOIN, session info: {session} \n")
-    print(f"\n Right now, these users are logged in: {usernames} \n") #debug
+    print(f"\n <--- Server join event current channel changed to: {session['currentChannel'] --->} \n") #debug
+    print(f"\n <--- AFTER JOIN, session info: {session} ---> \n") #debug
+    print(f"\n <--- Right now, these users are logged in: {usernames} ---> \n") #debug
 
     # convert chatHistory from deque to list for JSON serialization: https://stackoverflow.com/a/5773404/6297414
     channelHistory = list(chatHistory[data["channel"]])
@@ -136,7 +138,7 @@ def join(data):
 
 @socketio.on("leave")
 def leave(data):
-    print(f"\n leaving the channel: {data['channel']} \n") #debug
+    print(f"\n <--- {data['username']} leaving the channel: {data['channel']} ---> \n") #debug
     
     leave_room(data['channel'])
 
