@@ -1,27 +1,37 @@
 // NOTE: username and channel are embedded in chat.html under script tag
 document.addEventListener("DOMContentLoaded", () => {
 
-    console.log("current user is " + username); //debug
-    console.log("current channel is " + channel); //debug
+    var myStorage = window.localStorage;
+
+    var debug = function() {
+        console.log("\n");
+        console.log("current user is " + username);
+        console.log("current channel is " + channel);
+        console.log("myStorage.currentChannel is " + myStorage.currentChannel);
+        console.log("\n");
+    };
+
+    debug();
 
     // connect to websocket
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
     socket.on('connect', ()=> {
-        // Remember channel before closing window via localStorage as Flask session does not save custom 'currentChannel' key
-        if (!channel) {
-            channel = window.localStorage.getItem("currentChannel");
-        }
 
-        if (channel) {
-            joinChannel(channel);
+        console.log("client connected"); //debug
+        debug();
+
+        // myStorage.currentChannel === null on first sign-in
+        // if myStorage.currentChannel is not null, load that channel instead of lounge
+        if (myStorage.currentChannel) {
+            joinChannel(myStorage.currentChannel);
         } else {
-            channel = "Lounge";
-            window.localStorage.setItem("currentChannel", channel);
+            // default to the channel provided by chat.html, which always has a channel available
             joinChannel(channel);
         }
     });
 
+    // For messages from server that is delivered via send()
     socket.on('message', data => {
         console.log("we are now back on message event in client"); //debug
 
@@ -54,35 +64,40 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelector("#user-message").value = "";
     }
 
-    // Channel selection
+    // Select a Channel on Sidebar to Join a Channel
     document.querySelectorAll(".select-channel").forEach(p => {
-        var msg;
-        
         p.onclick = () => {
+
+            debug();
+
             let newChannel = p.innerHTML;
-            console.log("You are clicking a new channel -> " + newChannel); //debug
+            console.log("\nYou are clicking a new channel -> " + newChannel); //debug
             
             if (newChannel === channel) {
-                msg = `You are already in the channel ${newChannel}`;
+                let msg = `You are already in the channel ${newChannel}`;
                 printSystemMessage(msg);
             } else {
-                leaveChannel(channel); // leave current channel
-                channel = newChannel; // update current channel to new channel
-                window.localStorage.setItem("currentChannel", channel);
-                joinChannel(channel);  // join new channel
+                // Inform server to leave current channel
+                leaveChannel(channel);
+
+                // update current channel to new channel
+                channel = newChannel;
+
+                // Inform server to join new channel
+                joinChannel(channel);
             }
         };
     });
 
-    // When log out, forget about localStorage's currentChannel
+    // When log out, forget about myStorage's currentChannel
     document.querySelector('#logout').addEventListener('click', () => {
-        localStorage.clear();
+        myStorage.clear();
     });
 
-    // Forget localStorage's currentChannel when clicked on '+ Channel'
-    document.querySelector('#create-channel').addEventListener('click', () => {
-        localStorage.removeItem('currentChannel');
-    });
+    // Forget myStorage's currentChannel when clicked on '+ Channel'
+    /* document.querySelector('#create-channel').addEventListener('click', () => {
+        myStorage.removeItem('currentChannel');
+    }); */
 
     // print system message when user joins or leaves a channel
     var printSystemMessage = function(msg) {
@@ -92,27 +107,27 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     // leave a channel
-    var leaveChannel = function(channel) {
+    var leaveChannel = function(channelName) {
         // emits a message containing at least 'username' and 'channel' to server event 'leave'
         // use emit since it's a custom event because send will lead to 'message' bucket
-        console.log("leaving " + channel); //debug
+        console.log("Client leaves " + channelName); //debug
         
-        socket.emit('leave', {'username': username, 'channel': channel});
+        socket.emit('leave', {'username': username, 'channel': channelName});
     };
 
     // join a channel
-    var joinChannel = function(channel) {
+    var joinChannel = function(channelName) {
         // emits a message containing at least 'username' and 'channel' to server event 'join'
         // use emit since it's a custom event because send will lead to 'message' bucket
-        console.log("joining " + channel); //debug
+        console.log("joining " + channelName); //debug
 
-        window.localStorage.setItem("currentChannel", channel);
+        myStorage.setItem("currentChannel", channelName);
         
-        socket.emit('join', {'username': username, 'channel': channel});
+        socket.emit('join', {'username': username, 'channel': channelName});
 
         // change heading to proper channel name
         var channelHeading = document.querySelector("#channel-name-content");
-        channelHeading.innerText = channel;
+        channelHeading.innerText = channelName;
 
         // clear message in display-message-section to start a new chat
         document.querySelector("#display-message-section").innerHTML = '';
