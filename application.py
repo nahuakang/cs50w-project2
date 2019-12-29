@@ -125,7 +125,7 @@ def join(data):
     # update session currentChannel
     session["currentChannel"] = data['channel']
 
-    print(f"\n <--- Server join event current channel changed to: {session['currentChannel'] --->} \n") #debug
+    print(f"\n <--- Server join event current channel changed to: {session['currentChannel']} --->\n") #debug
     print(f"\n <--- AFTER JOIN, session info: {session} ---> \n") #debug
     print(f"\n <--- Right now, these users are logged in: {usernames} ---> \n") #debug
 
