@@ -10,10 +10,8 @@ from flask_socketio import SocketIO, send, emit, join_room, leave_room
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "something-unique" #os.getenv("SECRET_KEY")
+app.config["SESSION_PERMANENT"] = True # or session.permanent=True
 socketio = SocketIO(app)
-
-#app.config["SESSION_TYPE"] = "filesystem"
-#app.config["SESSION_PERMANENT"] = False
 
 
 """GLOBAL VARIABLES"""
@@ -24,8 +22,7 @@ channels = ["Lounge", "News", "Games", "Coding"]
 chatHistory = {n: deque(maxlen=100) for n in channels}
 
 
-# Login Required Decorator
-# See https://flask.palletsprojects.com/en/1.1.x/patterns/viewdecorators/
+# Login Required: https://flask.palletsprojects.com/en/1.1.x/patterns/viewdecorators/
 def login_required(f):
     @wraps(f)
 
@@ -33,8 +30,47 @@ def login_required(f):
 
         if session.get("username") is None:
             return redirect(url_for("signin"))
+
         return f(*args, **kwargs)
     return decorated_function
+
+
+def debug(fnName):
+    print("\n")
+    print(f"<--- SERVER ROUTER {fnName} --->")
+
+    if session.get("username") is None:
+        print("<--- username: NONE --->")
+    else:
+        print(f"<--- username: {session['username']} --->")
+    
+    if session.get("currentChannel") is None:
+        print("<--- currentChannel: NONE --->")
+    else:
+        print(f"<--- currentChannel: {session['currentChannel']} --->")
+
+    print(f"FINALLY, full session information: {session}")
+    
+    print("\n")
+
+
+def socketDebug(fnName, data):
+    print("\n")
+    print(f"<--- SOCKET EVENT {fnName} --->")
+
+    if fnName == "leave":
+        print(f"<--- Leave channel: {data['channel']} --->")
+    elif fnName == "join":
+        print(f"<--- Join channel: {data['channel']} --->")
+        print(f"<--- Current channel: {session['currentChannel']} --->")
+    elif fnName == "message":
+        print(f"<--- Message in channel: {data['channel']} --->")
+        print(f"<--- Message from user: {data['username']} --->")
+        print(f"<--- Message content: {data['msg']} --->")
+
+    print(f"FINALLY, full session information: {session}")
+
+    print("\n")
 
 
 @app.route("/")
@@ -44,28 +80,28 @@ def index():
     # Before window close: {'username': 'nahua', 'currentChannel': 'News'} 
     # After window close and reload: <SecureCookieSession {'username': 'nahua'}>
     # Use client side localStorage to redirect chat.html to the channel previously on
+    debug("index")
     return redirect(url_for("chat"))
 
 
 @app.route("/signin", methods=["GET", "POST"])
 def signin():
-    print("\n <--- Going through /signin to redirect to chat ---> \n") #debug
-    print(f"\n <--- Before signin, these users are logged in: {usernames} --->\n") #debug
+    debug("signin")
 
     if request.method == "POST":
+        # Get username from form submission
         username = request.form.get("username")
-        
-        # Check if username exists in usernames
+
+        # Check if username exists in usernames, which contains all logged-in users
         if username in usernames:
             return render_template("error.html", message="This username is taken.")
 
-        # Update session.username
+        # Update session['username'] and append username to logged-in users
         session["username"] = username
-        # Log username so others cannot use it
         usernames.append(username)
 
-        # https://stackoverflow.com/a/55055558
-        #session.permanent = True
+        # On signin, initialize channel to Lounge so chat.html always has a channel
+        session["currentChannel"] = "Lounge"
 
         return redirect(url_for("chat"))
 
@@ -81,7 +117,7 @@ def logout():
     except:
         print("\n Logout error. \n")
 
-    # remove cookie
+    # remove all Flask session cookies, i.e. username and currentChannel
     session.clear()
 
     return redirect(url_for("index"))
@@ -89,21 +125,21 @@ def logout():
 
 @app.route("/create", methods=["GET", "POST"])
 def create():
+    debug("create")
+
     if request.method == "POST":
+        # Get newChannel from form submission
         newChannel = request.form.get("channel-name")
 
-        if newChannel in channels:
-            session['currentChannel'] = newChannel
-            
-            return redirect(url_for("chat"))
+        # Update session currentChannel
+        session['currentChannel'] = newChannel
 
-        channels.append(newChannel)
-
-        # Set currentChannel to new channel for chat.html
-        session["currentChannel"] = newChannel
-
-        # collections.deque with maxlen: https://stackoverflow.com/a/19723509/6297414 
-        chatHistory[newChannel] = deque(maxlen=100)
+        # if newChannel is new
+        if newChannel not in channels:
+            # add channel to created channels
+            channels.append(newChannel)
+            # create chatHistory for channel that holds the most recent 100 messages: https://stackoverflow.com/a/19723509/6297414
+            chatHistory[newChannel] = deque(maxlen=100)
 
         return redirect(url_for("chat"))
 
@@ -111,23 +147,21 @@ def create():
         return render_template("create.html")
 
 
-@app.route("/chat", methods=["GET", "POST"])
+@app.route("/chat")
 @login_required
 def chat():
-    return render_template("chat.html", channels=channels, username=session["username"])
+    debug("chat")
+    return render_template("chat.html", channels=channels)
 
 
 @socketio.on("join")
 def join(data):
-    # current channel has to be sent from the client
     join_room(data['channel'])
 
     # update session currentChannel
     session["currentChannel"] = data['channel']
 
-    print(f"\n <--- Server join event current channel changed to: {session['currentChannel']} --->\n") #debug
-    print(f"\n <--- AFTER JOIN, session info: {session} ---> \n") #debug
-    print(f"\n <--- Right now, these users are logged in: {usernames} ---> \n") #debug
+    socketDebug("join", data)
 
     # convert chatHistory from deque to list for JSON serialization: https://stackoverflow.com/a/5773404/6297414
     channelHistory = list(chatHistory[data["channel"]])
@@ -138,8 +172,8 @@ def join(data):
 
 @socketio.on("leave")
 def leave(data):
-    print(f"\n <--- {data['username']} leaving the channel: {data['channel']} ---> \n") #debug
-    
+    socketDebug("leave", data)
+
     leave_room(data['channel'])
 
     send({"msg": data["username"] + " has left the channel " + data["channel"]}, room=data["channel"])
@@ -147,6 +181,8 @@ def leave(data):
 
 @socketio.on("message")
 def message(data):
+    socketDebug("message")
+
     # automatically send to event "message" to clients: https://stackoverflow.com/a/13767655
     timestampedData = {"msg": data["msg"], "username": data["username"], "timestamp": strftime("%b-%d %I: %M%p", localtime())}
     
