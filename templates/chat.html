@@ -3,7 +3,7 @@
 {% block content %}
 
     <div class="sidebar">
-        <div class="channel create-channel"><a href="{{ url_for('create') }}"><p>+ Channel</p></a></div>
+        <div class="channel create-channel"><a href="{{ url_for('create') }}"><p id="create-channel">+ Channel</p></a></div>
         {% for channel in channels %}
             <div class="channel"><p class="select-channel">{{channel}}</p></div>
         {% endfor %}
@@ -29,7 +29,7 @@
     <script type="text/javascript"> 
         // this way, we can directly use username in our socketio.js file
         const username = `{{ username }}`; // |e to change special character in username to unicode values
-        var channel; // need to reassign
+        var channel = `{{ session["currentChannel"] }}`; // need to reassign
     </script>
 
     <!-- Custom/Non-SocketIO JS -->
