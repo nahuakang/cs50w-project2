@@ -40,14 +40,17 @@ def login_required(f):
 @app.route("/")
 @login_required
 def index():
-    print(f"\ngoing through / to redirect to chat. Session details: {session}\n") #debug
-
+    # NOTE: session drops 'currentChannel' after window closes: 
+    # Before window close: {'username': 'nahua', 'currentChannel': 'News'} 
+    # After window close and reload: <SecureCookieSession {'username': 'nahua'}>
+    # Use client side localStorage to redirect chat.html to the channel previously on
     return redirect(url_for("chat"))
 
 
 @app.route("/signin", methods=["GET", "POST"])
 def signin():
     print("\ngoing through /signin to redirect to chat\n") #debug
+    print(f"\n Before signin, these users are logged in: {usernames} \n") #debug
 
     if request.method == "POST":
         username = request.form.get("username")
@@ -69,13 +72,13 @@ def signin():
 
 
 @app.route("/logout")
-def logout():
-    # remove the username from the session if it's there
+def logout(): 
+    # remove username from usernames list, note potential IndexError/ValueError
     try:
         usernames.remove(session['username'])
-    except ValueError:
-        pass
-    
+    except:
+        print("\n Logout error. \n")
+
     # remove cookie
     session.clear()
 
@@ -121,7 +124,8 @@ def join(data):
     session["currentChannel"] = data['channel']
 
     print(f"\n server join event current channel changed to: {session['currentChannel']} \n") #debug
-    print(f"\n session info: {session} \n")
+    print(f"\n AFTER JOIN, session info: {session} \n")
+    print(f"\n Right now, these users are logged in: {usernames} \n") #debug
 
     # convert chatHistory from deque to list for JSON serialization: https://stackoverflow.com/a/5773404/6297414
     channelHistory = list(chatHistory[data["channel"]])
