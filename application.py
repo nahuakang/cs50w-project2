@@ -65,7 +65,7 @@ def signin():
         usernames.append(username)
 
         # https://stackoverflow.com/a/55055558
-        #session.permanent = True
+        session.permanent = True
 
         return redirect(url_for("chat"))
 
@@ -125,7 +125,7 @@ def join(data):
     # update session currentChannel
     session["currentChannel"] = data['channel']
 
-    print(f"\n <--- Server join event current channel changed to: {session['currentChannel'] --->} \n") #debug
+    print(f"\n <--- Server join event current channel changed to: {session['currentChannel']} --->\n") #debug
     print(f"\n <--- AFTER JOIN, session info: {session} ---> \n") #debug
     print(f"\n <--- Right now, these users are logged in: {usernames} ---> \n") #debug
 
