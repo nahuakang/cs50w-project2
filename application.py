@@ -58,13 +58,9 @@ def signin():
 
         session["username"] = username
         usernames.append(username)
-        
-        # First time sign in, set currentChannel to "Lounge" for chat.html
-        """ if "currentChannel" not in session:
-            session["currentChannel"] = "Games" """
 
         # https://stackoverflow.com/a/55055558
-        session.permanent = True
+        #session.permanent = True
 
         return redirect(url_for("chat"))
 
@@ -100,8 +96,7 @@ def create():
 
         # Set currentChannel to new channel for chat.html
         session["currentChannel"] = newChannel
-        
-        ##################################################### Create chat history storage for the new channel
+
         # collections.deque with maxlen: https://stackoverflow.com/a/19723509/6297414 
         chatHistory[newChannel] = deque(maxlen=100)
 
@@ -119,8 +114,6 @@ def chat():
 
 @socketio.on("join")
 def join(data):
-    #print(f"\n server join event chanel: {data} \n") #debug
-    
     # current channel has to be sent from the client
     join_room(data['channel'])
 
@@ -132,15 +125,14 @@ def join(data):
 
     # convert chatHistory from deque to list for JSON serialization: https://stackoverflow.com/a/5773404/6297414
     channelHistory = list(chatHistory[data["channel"]])
-    
-    ##################################################### send chatHistory to user who joins the channel
+
     send({"msg": data["username"] + " has joined the channel " + data["channel"],
         "chatHistory": channelHistory}, room=data["channel"]) #only sends to data["room"]
 
 
 @socketio.on("leave")
 def leave(data):
-    print(f"\n trying to leave the channel: {data['channel']} \n") #debug
+    print(f"\n leaving the channel: {data['channel']} \n") #debug
     
     leave_room(data['channel'])
 
@@ -149,17 +141,12 @@ def leave(data):
 
 @socketio.on("message")
 def message(data):
-    print(f"\n\n msg is {data['msg']} \n username is {data['username']} \n channel is {data['channel']}\n\n") #debug
-    
     # automatically send to event "message" to clients: https://stackoverflow.com/a/13767655
     timestampedData = {"msg": data["msg"], "username": data["username"], "timestamp": strftime("%b-%d %I: %M%p", localtime())}
     
     send(timestampedData, room=data["channel"])
 
-    ##################################################### Store new message in chat history
     chatHistory[data['channel']].append(timestampedData)
-
-    print("\n message sent via socketio back to client \n") #debug
 
 
 if __name__ == "__main__":
