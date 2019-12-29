@@ -2,13 +2,16 @@
 document.addEventListener("DOMContentLoaded", () => {
 
     console.log("current user is " + username); //debug
+    console.log("current channel is " + channel); //debug
 
     // connect to websocket
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
     socket.on('connect', ()=> {
         // Remember channel before closing window via localStorage as Flask session does not save custom 'currentChannel' key
-        channel = window.localStorage.getItem("currentChannel");
+        if (!channel) {
+            channel = window.localStorage.getItem("currentChannel");
+        }
 
         if (channel) {
             joinChannel(channel);
@@ -65,9 +68,20 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 leaveChannel(channel); // leave current channel
                 channel = newChannel; // update current channel to new channel
+                window.localStorage.setItem("currentChannel", channel);
                 joinChannel(channel);  // join new channel
             }
         };
+    });
+
+    // When log out, forget about localStorage's currentChannel
+    document.querySelector('#logout').addEventListener('click', () => {
+        localStorage.clear();
+    });
+
+    // Forget localStorage's currentChannel when clicked on '+ Channel'
+    document.querySelector('#create-channel').addEventListener('click', () => {
+        localStorage.removeItem('currentChannel');
     });
 
     // print system message when user joins or leaves a channel
