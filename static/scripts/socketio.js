@@ -95,17 +95,15 @@ document.addEventListener("DOMContentLoaded", () => {
     var leaveChannel = function(channel) {
         // emits a message containing at least 'username' and 'channel' to server event 'leave'
         // use emit since it's a custom event because send will lead to 'message' bucket
-        var data = {'username': username, 'channel': channel}; //debug
         console.log("leaving " + channel); //debug
+        
         socket.emit('leave', {'username': username, 'channel': channel});
-
     };
 
     // join a channel
     var joinChannel = function(channel) {
         // emits a message containing at least 'username' and 'channel' to server event 'join'
         // use emit since it's a custom event because send will lead to 'message' bucket
-        var data = {'username': username, 'channel': channel}; //debug
         console.log("joining " + channel); //debug
 
         window.localStorage.setItem("currentChannel", channel);
