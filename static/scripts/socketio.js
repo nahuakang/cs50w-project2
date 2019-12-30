@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("we are now back on message event in client"); //debug
 
         if (data.chatHistory) {
-            // if data.chatHistory exists, it is for server event 'join' via flask-socketio send
+            // JOIN: if data.chatHistory exists, it is for server event 'join' via flask-socketio send
             // first load the maximum 100 messages to the channel
             for (let i = 0; i < data.chatHistory.length; i++) {
                 formatMessage(data.chatHistory[i]);
@@ -49,7 +49,9 @@ document.addEventListener("DOMContentLoaded", () => {
             printSystemMessage(data.msg);
 
         } else if (data.username) {
+            // MESSAGE: else, with data.username existing, it's a message
             formatMessage(data);
+            console.log("Message is sent by " + data.username + " at the ID of " + data.userId); //debug
 
         } else {
             // finally, it should be for server event 'leave' via flask-socketio send
