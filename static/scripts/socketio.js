@@ -27,14 +27,14 @@ document.addEventListener("DOMContentLoaded", () => {
             joinChannel(myStorage.currentChannel);
             channel = myStorage.currentChannel; 
         } else {
-            // default to the channel provided by chat.html, which always has a channel available
+            // default to the channel provided by chat.html, joinChannel will set myStorage.currentChannel
             joinChannel(channel);
         }
 
         debug();
     });
 
-    // For messages from server that is delivered via send()
+    // Handle 3 types of messages from server that is delivered via send(): message, join, leave
     socket.on('message', data => {
         console.log("we are now back on message event in client"); //debug
 
