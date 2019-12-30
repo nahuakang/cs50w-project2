@@ -54,8 +54,8 @@ socketio = SocketIO(app, manage_session=False) # give flask-socketio access to S
     the user will not be directed to the new channel but instead the one before closing window.
 """
 
-"""GLOBAL VARIABLES"""
-usernames = []
+# GLOBAL VARIABLES
+usernames = dict()
 channels = ["Lounge", "News", "Games", "Coding"]
 
 # Initialize history for  original channels
@@ -78,38 +78,16 @@ def login_required(f):
 def debug(fnName):
     print("\n")
     print(f"<--- SERVER ROUTER {fnName} --->")
-
-    if session.get("username") is None:
-        print("<--- username: NONE --->")
-    else:
-        print(f"<--- username: {session['username']} --->")
-    
-    if session.get("currentChannel") is None:
-        print("<--- currentChannel: NONE --->")
-    else:
-        print(f"<--- currentChannel: {session['currentChannel']} --->")
-
-    print(f"FINALLY, full session information: {session}")
-    
+    print(f"<--- SESSION: {session} --->")
     print("\n")
 
 
-def socketDebug(fnName, data):
+def socketDebug(fnName, *args):
     print("\n")
     print(f"<--- SOCKET EVENT {fnName} --->")
-
-    if fnName == "leave":
-        print(f"<--- Leave channel: {data['channel']} --->")
-    elif fnName == "join":
-        print(f"<--- Join channel: {data['channel']} --->")
-        print(f"<--- Current channel: {session['currentChannel']} --->")
-    elif fnName == "message":
-        print(f"<--- Message in channel: {data['channel']} --->")
-        print(f"<--- Message from user: {data['username']} --->")
-        print(f"<--- Message content: {data['msg']} --->")
-
-    print(f"FINALLY, full session information: {session}")
-
+    if args:
+        print(f"<--- SOCKET DATA {args[0]} --->")
+    print(f"<--- SESSION: {session} --->")
     print("\n")
 
 
@@ -132,8 +110,8 @@ def signin():
             return render_template("error.html", message="This username is taken.")
 
         # Update session['username'] and append username to logged-in users
-        session["username"] = username
-        usernames.append(username)
+        session['username'] = username
+        usernames[username] = None # add username with value None to logged-in user list
 
         # On signin, initialize channel to Lounge so chat.html always has a channel
         session['currentChannel'] = "Lounge"
@@ -219,8 +197,9 @@ def message(data):
     socketDebug("message", data)
 
     # automatically send to event "message" to clients: https://stackoverflow.com/a/13767655
-    timestampedData = {"msg": data["msg"], "username": data["username"], "timestamp": strftime("%b-%d %I: %M%p", localtime())}
-    
+    # add request.sid (session id) to each user's timestamped message
+    timestampedData = {"msg": data["msg"], "username": data["username"], "userId": session['userID'], "timestamp": strftime("%b-%d %I: %M%p", localtime())}
+
     send(timestampedData, room=data["channel"])
 
     chatHistory[data['channel']].append(timestampedData)
@@ -228,18 +207,16 @@ def message(data):
 
 @socketio.on('connect')
 def connect():
-    print("\n")
-    print(f"<--- SOCKET EVENT Connect --->")
-    print(f"Full session information: {session}")
-    print("\n")
+    # Set or update userID for both the session and the logged-in user list
+    session['userID'] = request.sid
+    usernames[session['username']] = session['userID']
+
+    socketDebug('connect')
 
 
 @socketio.on('disconnect')
 def disconnect():
-    print("\n")
-    print(f"<--- SOCKET EVENT Disconnect --->")
-    print(f"Full session information: {session}")
-    print("\n")
+    socketDebug('disconnect')
 
 
 if __name__ == "__main__":
