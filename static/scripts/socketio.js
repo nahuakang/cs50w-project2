@@ -5,30 +5,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
     var debug = function() {
         console.log("\n");
-        console.log("current user is " + username);
-        console.log("current channel is " + channel);
-        console.log("myStorage.currentChannel is " + myStorage.currentChannel);
+        console.log("-var username- is " + username);
+        console.log("-var channel- is " + channel);
+        console.log("-myStorage.currentChannel- is " + myStorage.currentChannel);
         console.log("\n");
     };
 
     debug();
 
-    // connect to websocket
+    // Connect to websocket
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
     socket.on('connect', ()=> {
 
-        console.log("client connected"); //debug
-        debug();
+        console.log("client CONNECTED"); //debug
 
         // myStorage.currentChannel === null on first sign-in
         // if myStorage.currentChannel is not null, load that channel instead of lounge
+        // NOTE BUG: closing window -> direct access http://127.0.0.1:5000/create will not lead to new channel; need to join manually
         if (myStorage.currentChannel) {
             joinChannel(myStorage.currentChannel);
+            channel = myStorage.currentChannel; 
         } else {
             // default to the channel provided by chat.html, which always has a channel available
             joinChannel(channel);
         }
+
+        debug();
     });
 
     // For messages from server that is delivered via send()
@@ -89,24 +92,14 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     });
 
-    // When log out, forget about myStorage's currentChannel
-    document.querySelector('#logout').addEventListener('click', () => {
-        myStorage.clear();
-    });
-
-    // Forget myStorage's currentChannel when clicked on '+ Channel'
-    /* document.querySelector('#create-channel').addEventListener('click', () => {
-        myStorage.removeItem('currentChannel');
-    }); */
-
-    // print system message when user joins or leaves a channel
+    // Print system message when user joins or leaves a channel
     var printSystemMessage = function(msg) {
         const p = document.createElement('p');
         p.innerHTML = msg;
         document.querySelector("#display-message-section").append(p);
     };
 
-    // leave a channel
+    // Leave a channel
     var leaveChannel = function(channelName) {
         // emits a message containing at least 'username' and 'channel' to server event 'leave'
         // use emit since it's a custom event because send will lead to 'message' bucket
@@ -115,7 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
         socket.emit('leave', {'username': username, 'channel': channelName});
     };
 
-    // join a channel
+    // Join a channel
     var joinChannel = function(channelName) {
         // emits a message containing at least 'username' and 'channel' to server event 'join'
         // use emit since it's a custom event because send will lead to 'message' bucket
@@ -136,6 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelector("#user-message").focus();
     };
 
+    // Message wrapper
     var formatMessage = function(data) {
         // Create message skeleton
         const p = document.createElement('p');
@@ -151,4 +145,14 @@ document.addEventListener("DOMContentLoaded", () => {
         // display message to channel
         document.querySelector("#display-message-section").append(p);
     }
+
+    // When log out, forget about myStorage's currentChannel
+    document.querySelector('#logout').addEventListener('click', () => {
+        myStorage.clear();
+    });
+
+    // Forget myStorage's currentChannel when clicked on '+ Channel'
+    document.querySelector('#create-channel').addEventListener('click', () => {
+        myStorage.removeItem('currentChannel');
+    });
 });
