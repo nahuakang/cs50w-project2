@@ -31,7 +31,7 @@
         var username = `{{ session["username"] }}`; 
         // channel variable is updated on 1. after signin, 2. after creating new channel
         // view page source shows that this variable does not change even after closing window
-        var channel = `{{ session["currentChannel"] }}`; 
+        var channel = `{{ session["currentChannel"]|safe }}`;  //https://stackoverflow.com/a/35557758/6297414: safe to render
     </script>
 
     <!-- Custom/Non-SocketIO JS -->
