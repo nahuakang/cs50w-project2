@@ -80,7 +80,6 @@ def index():
     # Before closing window: {'currentChannel': 'Games', 'username': 'nahua'}
     # Closing window: "GET /socket.io/?EIO=3&transport=websocket&sid=12cdda1286724c849d3c9a4267f24422 HTTP/1.1" 200 0 236.749883
     # After reopening window: <SecureCookieSession {'currentChannel': 'Lounge', 'username': 'nahua'}>
-    debug("index")
     return redirect(url_for("chat"))
 
 
