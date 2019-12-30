@@ -29,8 +29,7 @@
     <script type="text/javascript"> 
         // this way, we can directly use username in our socketio.js file
         var username = `{{ session["username"] }}`; 
-        // channel variable is updated on 1. after signin, 2. after creating new channel
-        // view page source shows that this variable does not change even after closing window
+        // channel variable is updated on 1. after signin, 2. after creating new channel 3. after join another channel
         var channel = `{{ session["currentChannel"]|safe }}`;  //https://stackoverflow.com/a/35557758/6297414: safe to render
     </script>
 
