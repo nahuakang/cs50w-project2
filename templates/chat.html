@@ -28,9 +28,9 @@
     -->
     <script type="text/javascript"> 
         // this way, we can directly use username in our socketio.js file
-        var username = `{{ session["username"] }}`; // |e to change special character in username to unicode values
+        var username = `{{ session["username"] }}`; 
         // channel variable is updated on 1. after signin, 2. after creating new channel
-        var channel = `{{ session["currentChannel"] }}`; // joins the new channel everytime it is created
+        var channel = `{{ session["currentChannel"] }}`; 
     </script>
 
     <!-- Custom/Non-SocketIO JS -->
