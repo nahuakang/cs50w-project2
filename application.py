@@ -76,10 +76,10 @@ def socketDebug(fnName, data):
 @app.route("/")
 @login_required
 def index():
-    # NOTE: session drops 'currentChannel' after window closes: 
-    # Before window close: {'username': 'nahua', 'currentChannel': 'News'} 
-    # After window close and reload: <SecureCookieSession {'username': 'nahua'}>
-    # Use client side localStorage to redirect chat.html to the channel previously on
+    # NOTE: Example of session behavior
+    # Before closing window: {'currentChannel': 'Games', 'username': 'nahua'}
+    # Closing window: "GET /socket.io/?EIO=3&transport=websocket&sid=12cdda1286724c849d3c9a4267f24422 HTTP/1.1" 200 0 236.749883
+    # After reopening window: <SecureCookieSession {'currentChannel': 'Lounge', 'username': 'nahua'}>
     debug("index")
     return redirect(url_for("chat"))
 
@@ -101,7 +101,7 @@ def signin():
         usernames.append(username)
 
         # On signin, initialize channel to Lounge so chat.html always has a channel
-        session["currentChannel"] = "Lounge"
+        session['currentChannel'] = "Lounge"
 
         return redirect(url_for("chat"))
 
@@ -158,8 +158,21 @@ def chat():
 def join(data):
     join_room(data['channel'])
 
-    # update session currentChannel
-    session["currentChannel"] = data['channel']
+    """
+    =====ACCESS TO FLASK'S CONTEXT GLOBALS=====
+    A copy of the user session at the time the SocketIO connection is established is 
+    made available to handlers invoked in the context of that connection. If a SocketIO
+    handler modifies the session, the modified session will be preserved for future
+    SocketIO handlers, but regular HTTP route handlers will not see these changes. 
+    Effectively, when a SocketIO handler modifies the session, a “fork” of the session
+    is created exclusively for these handlers.
+
+    When using server-side sessions such as those provided by the Flask-Session or
+    Flask-KVSession extensions, changes made to the session in HTTP route handlers can
+    be seen by SocketIO handlers, as long as the session is not modified in the SocketIO handlers.
+    """
+    # update socketio session currentChannel; no effect on flask session currentChannel
+    session['currentChannel'] = data['channel']
 
     socketDebug("join", data)
 
@@ -189,6 +202,22 @@ def message(data):
     send(timestampedData, room=data["channel"])
 
     chatHistory[data['channel']].append(timestampedData)
+
+
+@socketio.on('connect')
+def connect():
+    print("\n")
+    print(f"<--- SOCKET EVENT Connect --->")
+    print(f"Full session information: {session}")
+    print("\n")
+
+
+@socketio.on('disconnect')
+def disconnect():
+    print("\n")
+    print(f"<--- SOCKET EVENT Disconnect --->")
+    print(f"Full session information: {session}")
+    print("\n")
 
 
 if __name__ == "__main__":
