@@ -112,7 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
     var joinChannel = function(channelName) {
         // emits a message containing at least 'username' and 'channel' to server event 'join'
         // use emit since it's a custom event because send will lead to 'message' bucket
-        console.log("joining " + channelName); //debug
+        console.log("Client joins " + channelName); //debug
 
         myStorage.setItem("currentChannel", channelName);
         
