@@ -181,7 +181,7 @@ def leave(data):
 
 @socketio.on("message")
 def message(data):
-    socketDebug("message")
+    socketDebug("message", data)
 
     # automatically send to event "message" to clients: https://stackoverflow.com/a/13767655
     timestampedData = {"msg": data["msg"], "username": data["username"], "timestamp": strftime("%b-%d %I: %M%p", localtime())}
