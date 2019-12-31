@@ -124,13 +124,10 @@ def signin():
 
 @app.route("/logout")
 def logout(): 
-    # remove username from usernames list, note potential erros include IndexError/ValueError
-    try:
-        usernames.remove(session['username'])
-    except:
-        print("\n Logout error. \n")
+    # First remove username from usernames dict
+    usernames.pop(session['username'], None)
 
-    # remove all Flask session cookies, i.e. username and currentChannel
+    # Second, remove Flask session cookies, i.e. username and currentChannel
     session.clear()
 
     return redirect(url_for("index"))
@@ -164,7 +161,9 @@ def create():
 @login_required
 def chat():
     debug("chat")
-    return render_template("chat.html", channels=channels)
+
+    # pass the lists of channels as well as usernames to chat.html for rendering sidebar
+    return render_template("chat.html", channels=channels, usernames=usernames)
 
 
 @socketio.on("join")
@@ -197,8 +196,7 @@ def message(data):
     socketDebug("message", data)
 
     # automatically send to event "message" to clients: https://stackoverflow.com/a/13767655
-    # add request.sid (session id) to each user's timestamped message
-    timestampedData = {"msg": data["msg"], "username": data["username"], "userId": session['userID'], "timestamp": strftime("%b-%d %I: %M%p", localtime())}
+    timestampedData = {"msg": data["msg"], "username": data["username"], "timestamp": strftime("%b-%d %I: %M%p", localtime())}
 
     send(timestampedData, room=data["channel"])
 
@@ -207,9 +205,9 @@ def message(data):
 
 @socketio.on('connect')
 def connect():
-    # Set or update userID for both the session and the logged-in user list
-    session['userID'] = request.sid
-    usernames[session['username']] = session['userID']
+    # Set or update userID for the logged-in user list
+    # Note request.sid changes every time the user disconnects and connects to the socket
+    usernames[session['username']] = request.sid #debug
 
     socketDebug('connect')
 
