@@ -3,10 +3,21 @@
 {% block content %}
 
     <div class="sidebar">
+        <!-- Button to create a new channel -->
         <div class="channel create-channel"><a href="{{ url_for('create') }}"><p id="create-channel">+ Channel</p></a></div>
+
+        <!-- Sidebar List for Channels -->
         {% for channel in channels %}
-            <div class="channel"><p class="select-channel">{{channel}}</p></div>
+            <div class="channel"><p class="select-channel">{{ channel }}</p></div>
         {% endfor %}
+
+        <!-- Sidebar List for Logged-In Users -->
+        {% if usernames %}
+            <div class="channel create-channel"><p>Users Online:</p></div>
+            {% for username in usernames %}
+                <div class="channel"><p class="select-private-channel">{{ username }}</p></div>
+            {% endfor %}
+        {% endif %}
     </div>
 
     <h1 id="channel-name">This is channel <span id="channel-name-content">channel<span></h1>
@@ -23,7 +34,7 @@
     </div>
 
     <!-- 
-        Get Username from chat() in application.py 
+        Get username and session['currentChannel '] from chat() in application.py 
         https://stackoverflow.com/questions/3244361/can-i-access-variables-from-another-file
     -->
     <script type="text/javascript"> 
