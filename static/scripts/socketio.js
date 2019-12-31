@@ -3,15 +3,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     var myStorage = window.localStorage;
 
-    var debug = function() {
+    var debugChannel = function() {
         console.log("\n");
         console.log("-var username- is " + username);
         console.log("-var channel- is " + channel);
         console.log("-myStorage.currentChannel- is " + myStorage.currentChannel);
+        console.log("-myStorage.privateMode- is " + myStorage.privateMode);
         console.log("\n");
     };
 
-    debug();
+    debugChannel();
 
     // Connect to websocket
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
@@ -21,61 +22,58 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("client CONNECTED"); //debug
 
         // myStorage.currentChannel === null on first sign-in
+        // NOTE that setting myStorage to true or false leads to storing a string
         // if myStorage.currentChannel is not null, load that channel instead of lounge
         // NOTE BUG: closing window -> direct access http://127.0.0.1:5000/create will not lead to new channel; need to join manually
         if (myStorage.currentChannel) {
-            joinChannel(myStorage.currentChannel);
-            channel = myStorage.currentChannel; 
+            if (myStorage.privateMode === "false") {
+                joinChannel(myStorage.currentChannel);
+                channel = myStorage.currentChannel;
+            } else if (myStorage.privateMode === "true") {
+                joinPrivateChannel(myStorage.currentChannel);
+                channel = myStorage.currentChannel;
+            }
         } else {
-            // default to the channel provided by chat.html, joinChannel will set myStorage.currentChannel
+            // default to the channel provided by chat.html, joinChannel will set myStorage.currentChannel and privateMode
             joinChannel(channel);
         }
 
-        debug();
+        debugChannel();
     });
 
-    // Handle 3 types of messages from server that is delivered via send(): message, join, leave
+    // Default 'message' Controller: handles 3 types of messages from server that is delivered via send(): message, join, leave
     socket.on('message', data => {
         console.log("we are now back on message event in client"); //debug
 
         if (data.chatHistory) {
             // JOIN: if data.chatHistory exists, it is for server event 'join' via flask-socketio send
-            // first load the maximum 100 messages to the channel
+            // Load the maximum 100 messages to the channel
             for (let i = 0; i < data.chatHistory.length; i++) {
                 formatMessage(data.chatHistory[i]);
             }
 
-            // then load the announcement that the user has joined the channel
+            // Load the announcement that the user has joined the channel
             printSystemMessage(data.msg);
 
         } else if (data.username) {
-            // MESSAGE: else, with data.username existing, it's a message
+            // MESSAGE: filter as message if data.username existing
             formatMessage(data);
             console.log("Message is sent by " + data.username); //debug
 
         } else {
-            // finally, it should be for server event 'leave' via flask-socketio send
+            // LEAVE: For server event 'leave' via flask-socketio send
             printSystemMessage(data.msg);
         }
     });
-
-    // Send message
-    document.querySelector("#send-message").onclick = () => {
-        console.log(document.querySelector("#user-message").value); //debug
-        
-        socket.send({"msg": document.querySelector("#user-message").value, "username": username, "channel": channel});
-
-        // clear the input area
-        document.querySelector("#user-message").value = "";
-    }
 
     // Select a Channel on Sidebar to Join a Channel
     document.querySelectorAll(".select-channel").forEach(p => {
         p.onclick = () => {
 
-            debug();
+            debugChannel();
 
             let newChannel = p.innerHTML;
+
             console.log("\nYou are clicking a new channel -> " + newChannel); //debug
             
             if (newChannel === channel) {
@@ -85,7 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Inform server to leave current channel
                 leaveChannel(channel);
 
-                // update current channel to new channel
+                // Update current channel to new channel
                 channel = newChannel;
 
                 // Inform server to join new channel
@@ -93,6 +91,53 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         };
     });
+
+    // Select a user on Sidebar to start private message
+    document.querySelectorAll(".select-private-channel").forEach(p => {
+        p.onclick = () => {
+            let toUser = p.innerHTML;
+
+            console.log("You've clicked on " + toUser + " to start a private message."); //debug
+
+            if (toUser == channel) {
+                let msg = `You are already in the private channel with ${toUser}`;
+                printSystemMessage(msg);
+            } else {
+                // Inform server to leave current channel
+                // QUESTION: Does it matter if the user never joined a channel that's to be left now???
+                leaveChannel(channel);
+
+                // Update current channel to new private channel
+                channel = toUser;
+
+                // Join private channel without inform server (pure #display-message-section aesthetics)
+                joinPrivateChannel(toUser);
+            }
+        };
+    });
+
+    // Send message button click
+    document.querySelector("#send-message").onclick = () => {
+        console.log(document.querySelector("#user-message").value); //debug
+
+        // send to public channel
+        if (myStorage.privateMode === "false") {
+            const message = {"msg": document.querySelector("#user-message").value, "username": username, "channel": channel, "privateMode": "false"};
+            console.log(message); //debug
+            socket.send(messsage);
+
+        } else if (myStorage.privateMode === "true") {
+            const message = {"msg": document.querySelector("#user-message").value, "fromUser": username, "toUser": channel, "privateMode": "true"};
+            console.log(message); //debug
+            socket.send(message);
+
+            let data = {'msg': document.querySelector("#user-message").value,'username': username,'timestamp': formatTimeStamp()};
+            formatMessage(data);
+        }
+
+        // clear the input area
+        document.querySelector("#user-message").value = "";
+    };
 
     // Print system message when user joins or leaves a channel
     var printSystemMessage = function(msg) {
@@ -110,24 +155,44 @@ document.addEventListener("DOMContentLoaded", () => {
         socket.emit('leave', {'username': username, 'channel': channelName});
     };
 
-    // Join a channel
+    // Join a public channel
     var joinChannel = function(channelName) {
-        // emits a message containing at least 'username' and 'channel' to server event 'join'
-        // use emit since it's a custom event because send will lead to 'message' bucket
+        // Emits a message containing at least 'username' and 'channel' to server event 'join'
+        // Use emit since it's a custom event because send will lead to 'message' bucket
         console.log("Client joins " + channelName); //debug
 
         myStorage.setItem("currentChannel", channelName);
-        
-        socket.emit('join', {'username': username, 'channel': channelName});
+        myStorage.setItem("privateMode", false);
 
-        // change heading to proper channel name
+        socket.emit('join', {"username": username, "channel": channelName});
+
+        // Change heading to proper channel name
         var channelHeading = document.querySelector("#channel-name-content");
         channelHeading.innerText = channelName;
 
-        // clear message in display-message-section to start a new chat
+        // Clear message in display-message-section to start a new chat
         document.querySelector("#display-message-section").innerHTML = '';
 
-        // put autofocus on text box
+        // Put autofocus on text box
+        document.querySelector("#user-message").focus();
+    };
+
+    // Join a private channel (message between two users)
+    var joinPrivateChannel = function(toUser) {
+        console.log("Client joins private channel with " + toUser); //debug
+
+        myStorage.setItem("currentChannel", toUser);
+        myStorage.setItem("privateMode", true);
+
+        // Change heading in #display-message-section to the proper private channel name
+        var channelHeading = document.querySelector("#channel-name-content");
+        channelHeading.innerText = toUser;
+
+        // Clear message in display-message-section to start a new chat
+        document.querySelector("#display-message-section").innerHTML = '';
+        printSystemMessage("You can now talk to " + toUser + " privately.");
+
+        // Put autofocus on text box
         document.querySelector("#user-message").focus();
     };
 
@@ -146,6 +211,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // display message to channel
         document.querySelector("#display-message-section").append(p);
+    }
+
+    // https://stackoverflow.com/a/46935603/6297414
+    var formatTimeStamp = function() {
+        let options = {month: "short",  day: "numeric", hour: "2-digit", minute: "2-digit"};
+        let date = new Date();
+        return date.toLocaleDateString("en-us", options);
     }
 
     // When log out, forget about myStorage's currentChannel
