@@ -106,11 +106,11 @@ def create():
         # Update session currentChannel
         session['currentChannel'] = newChannel
 
-        # if newChannel is new
+        # If newChannel is new
         if newChannel not in channels:
-            # add channel to created channels
+            # Add channel to created channels
             channels.append(newChannel)
-            # create chatHistory for channel that holds the most recent 100 messages: https://stackoverflow.com/a/19723509/6297414
+            # Create chatHistory for channel that holds the most recent 100 messages: https://stackoverflow.com/a/19723509/6297414
             chatHistory[newChannel] = deque(maxlen=100)
 
         return redirect(url_for("chat"))
@@ -124,7 +124,7 @@ def create():
 def chat():
     debug("chat")
 
-    # pass the lists of channels as well as usernames to chat.html for rendering sidebar
+    # Pass the lists of channels as well as usernames to chat.html for rendering sidebar
     return render_template("chat.html", channels=channels, usernames=usernames)
 
 
@@ -132,12 +132,12 @@ def chat():
 def join(data):
     join_room(data['channel'])
 
-    # update socketio session currentChannel; has effect on flask session currentChannel with manage_session=False
+    # Update socketio session currentChannel; has effect on flask session currentChannel with manage_session=False
     session['currentChannel'] = data['channel']
 
     socketDebug("join", data)
 
-    # convert chatHistory from deque to list for JSON serialization: https://stackoverflow.com/a/5773404/6297414
+    # Convert chatHistory from deque to list for JSON serialization: https://stackoverflow.com/a/5773404/6297414
     channelHistory = list(chatHistory[data["channel"]])
 
     send({"msg": data["username"] + " has joined the channel " + data["channel"],
@@ -153,7 +153,6 @@ def leave(data):
     send({"msg": data["username"] + " has left the channel " + data["channel"]}, room=data["channel"])
 
 
-# Note: format time to "Dec 31, 2019, 04:11 PM"
 @socketio.on("message")
 def message(data):
     socketDebug("message", data)
@@ -161,11 +160,12 @@ def message(data):
     # If message is public, send to the correct channel
     if data['privateMode'] == 'false':
         # automatically send to event "message" to clients: https://stackoverflow.com/a/13767655
+        # # Note: format time to "Dec 31, 2019, 04:11 PM"
         timestampedData = {"msg": data["msg"], "username": data["username"], "timestamp": strftime("%b %d, %Y %I:%M %p", localtime())}
         send(timestampedData, room=data["channel"])
         chatHistory[data['channel']].append(timestampedData)
 
-    # if message is private, send to the correct user session id
+    # If message is private, send to the correct user session id
     elif data['privateMode'] == 'true':
         timestampedData = {"msg": data["msg"], "username": data["fromUser"], "timestamp": strftime("%b %d, %Y %I:%M %p", localtime())}
         send(timestampedData, room=usernames[data["toUser"]])
