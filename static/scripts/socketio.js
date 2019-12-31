@@ -18,13 +18,10 @@ document.addEventListener("DOMContentLoaded", () => {
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
     socket.on('connect', ()=> {
-
         console.log("client CONNECTED"); //debug
 
-        // myStorage.currentChannel === null on first sign-in
-        // NOTE that setting myStorage to true or false leads to storing a string
+        // myStorage.currentChannel === null on first sign-in; booleans are stored as strings in localStorage
         // if myStorage.currentChannel is not null, load that channel instead of lounge
-        // NOTE BUG: closing window -> direct access http://127.0.0.1:5000/create will not lead to new channel; need to join manually
         if (myStorage.currentChannel) {
             if (myStorage.privateMode === "false") {
                 joinChannel(myStorage.currentChannel);
@@ -34,11 +31,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 channel = myStorage.currentChannel;
             }
         } else {
-            // default to the channel provided by chat.html, joinChannel will set myStorage.currentChannel and privateMode
+            // default to the channel provided by chat.html, joinChannel()/joinPrivateChannel() will set myStorage values
             joinChannel(channel);
         }
-
-        debugChannel();
     });
 
     // Default 'message' Controller: handles 3 types of messages from server that is delivered via send(): message, join, leave
@@ -178,23 +173,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Message wrapper
     var formatMessage = function(data) {
-        // Create message skeleton
         const p = document.createElement('p');
         const span_username = document.createElement('span');
         const br = document.createElement('br');
         const span_timestamp = document.createElement('span');
 
-        // populate and construct message
         span_username.innerHTML = data.username;
         span_timestamp.innerHTML = data.timestamp;
         p.innerHTML = span_username.innerHTML + br.outerHTML + data.msg + br.outerHTML + span_timestamp.innerHTML; // br is an object, br.outerHTML is str
 
-        // display message to channel
         document.querySelector("#display-message-section").append(p);
     }
 
-    // https://stackoverflow.com/a/46935603/6297414
     var formatTimeStamp = function() {
+        // Reference: https://stackoverflow.com/a/46935603/6297414
         let options = {month: "short",  day: "numeric", hour: "2-digit", minute: "2-digit"};
         let date = new Date();
         return date.toLocaleDateString("en-us", options);
