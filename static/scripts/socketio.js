@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } else if (data.username) {
             // MESSAGE: else, with data.username existing, it's a message
             formatMessage(data);
-            console.log("Message is sent by " + data.username + " at the ID of " + data.userId); //debug
+            console.log("Message is sent by " + data.username); //debug
 
         } else {
             // finally, it should be for server event 'leave' via flask-socketio send
