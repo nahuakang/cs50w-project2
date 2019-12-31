@@ -153,16 +153,22 @@ def leave(data):
     send({"msg": data["username"] + " has left the channel " + data["channel"]}, room=data["channel"])
 
 
+# Note: format time to "Dec 31, 2019, 04:11 PM"
 @socketio.on("message")
 def message(data):
     socketDebug("message", data)
 
-    # automatically send to event "message" to clients: https://stackoverflow.com/a/13767655
-    timestampedData = {"msg": data["msg"], "username": data["username"], "timestamp": strftime("%b-%d %I: %M%p", localtime())}
+    # If message is public, send to the correct channel
+    if data['privateMode'] == 'false':
+        # automatically send to event "message" to clients: https://stackoverflow.com/a/13767655
+        timestampedData = {"msg": data["msg"], "username": data["username"], "timestamp": strftime("%b %d, %Y %I:%M %p", localtime())}
+        send(timestampedData, room=data["channel"])
+        chatHistory[data['channel']].append(timestampedData)
 
-    send(timestampedData, room=data["channel"])
-
-    chatHistory[data['channel']].append(timestampedData)
+    # if message is private, send to the correct user session id
+    elif data['privateMode'] == 'true':
+        timestampedData = {"msg": data["msg"], "username": data["fromUser"], "timestamp": strftime("%b %d, %Y %I:%M %p", localtime())}
+        send(timestampedData, room=usernames[data["toUser"]])
 
 
 @socketio.on('connect')
