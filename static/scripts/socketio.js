@@ -69,24 +69,14 @@ document.addEventListener("DOMContentLoaded", () => {
     // Select a Channel on Sidebar to Join a Channel
     document.querySelectorAll(".select-channel").forEach(p => {
         p.onclick = () => {
-
-            debugChannel();
-
             let newChannel = p.innerHTML;
-
-            console.log("\nYou are clicking a new channel -> " + newChannel); //debug
             
             if (newChannel === channel) {
                 let msg = `You are already in the channel ${newChannel}`;
                 printSystemMessage(msg);
             } else {
-                // Inform server to leave current channel
                 leaveChannel(channel);
-
-                // Update current channel to new channel
                 channel = newChannel;
-
-                // Inform server to join new channel
                 joinChannel(channel);
             }
         };
@@ -97,20 +87,12 @@ document.addEventListener("DOMContentLoaded", () => {
         p.onclick = () => {
             let toUser = p.innerHTML;
 
-            console.log("You've clicked on " + toUser + " to start a private message."); //debug
-
             if (toUser == channel) {
                 let msg = `You are already in the private channel with ${toUser}`;
                 printSystemMessage(msg);
             } else {
-                // Inform server to leave current channel
-                // QUESTION: Does it matter if the user never joined a channel that's to be left now???
                 leaveChannel(channel);
-
-                // Update current channel to new private channel
                 channel = toUser;
-
-                // Join private channel without inform server (pure #display-message-section aesthetics)
                 joinPrivateChannel(toUser);
             }
         };
@@ -131,6 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log(message); //debug
             socket.send(message);
 
+            // Display the message to the sender as well
             let data = {'msg': document.querySelector("#user-message").value,'username': username,'timestamp': formatTimeStamp()};
             formatMessage(data);
         }
@@ -149,16 +132,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // Leave a channel
     var leaveChannel = function(channelName) {
         // emits a message containing at least 'username' and 'channel' to server event 'leave'
-        // use emit since it's a custom event because send will lead to 'message' bucket
         console.log("Client leaves " + channelName); //debug
-        
         socket.emit('leave', {'username': username, 'channel': channelName});
     };
 
     // Join a public channel
     var joinChannel = function(channelName) {
         // Emits a message containing at least 'username' and 'channel' to server event 'join'
-        // Use emit since it's a custom event because send will lead to 'message' bucket
         console.log("Client joins " + channelName); //debug
 
         myStorage.setItem("currentChannel", channelName);
