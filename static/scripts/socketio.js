@@ -99,14 +99,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // send to public channel
         if (myStorage.privateMode === "false") {
-            const message = {"msg": document.querySelector("#user-message").value, "username": username, "channel": channel, "privateMode": "false"};
-            console.log(message); //debug
-            socket.send(messsage);
+            socket.send({"msg": document.querySelector("#user-message").value, "username": username, "channel": channel, "privateMode": "false"});
 
         } else if (myStorage.privateMode === "true") {
-            const message = {"msg": document.querySelector("#user-message").value, "fromUser": username, "toUser": channel, "privateMode": "true"};
-            console.log(message); //debug
-            socket.send(message);
+            socket.send({"msg": document.querySelector("#user-message").value, "fromUser": username, "toUser": channel, "privateMode": "true"});
 
             // Display the message to the sender as well
             let data = {'msg': document.querySelector("#user-message").value,'username': username,'timestamp': formatTimeStamp()};
