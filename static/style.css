@@ -133,6 +133,8 @@ body {
 .select-channel, .select-private-channel {
     font-size: 14px;
     font-weight: bold;
+    word-wrap: break-word;
+    word-break: break-all;
 }
 
 .select-channel:hover, .select-private-channel:hover {
