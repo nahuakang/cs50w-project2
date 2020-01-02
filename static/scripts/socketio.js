@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             // Load the announcement that the user has joined the channel
-            printSystemMessage(data.msg);
+            printSystemMessage(data.msg, data.username);
 
         } else if (data.username) {
             // MESSAGE: filter as message if data.username existing
@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         } else {
             // LEAVE: For server event 'leave' via flask-socketio send
-            printSystemMessage(data.msg);
+            printSystemMessage(data.msg, data.username);
         }
     });
 
@@ -113,13 +113,6 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelector("#user-message").value = "";
     };
 
-    // Print system message when user joins or leaves a channel
-    var printSystemMessage = function(msg) {
-        const p = document.createElement('p');
-        p.innerHTML = msg;
-        document.querySelector("#display-message-section").append(p);
-    };
-
     // Leave a channel
     var leaveChannel = function(channelName) {
         // emits a message containing at least 'username' and 'channel' to server event 'leave'
@@ -137,12 +130,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         socket.emit('join', {"username": username, "channel": channelName});
 
-        // Change heading to proper channel name
-        var channelHeading = document.querySelector("#channel-name-content");
-        channelHeading.innerText = channelName;
-
         // Clear message in display-message-section to start a new chat
-        document.querySelector("#display-message-section").innerHTML = '';
+        document.querySelector(".display-message-section").innerHTML = '';
+        formatChatHeader(channelName);
 
         // Put autofocus on text box
         document.querySelector("#user-message").focus();
@@ -155,37 +145,100 @@ document.addEventListener("DOMContentLoaded", () => {
         myStorage.setItem("currentChannel", toUser);
         myStorage.setItem("privateMode", true);
 
-        // Change heading in #display-message-section to the proper private channel name
+        // Change heading in .display-message-section to the proper private channel name
         var channelHeading = document.querySelector("#channel-name-content");
         channelHeading.innerText = toUser;
 
         // Clear message in display-message-section to start a new chat
-        document.querySelector("#display-message-section").innerHTML = '';
-        printSystemMessage("You can now talk to " + toUser + " privately.");
+        document.querySelector(".display-message-section").innerHTML = '';
+        formatChatHeader(channelName);
 
         // Put autofocus on text box
         document.querySelector("#user-message").focus();
     };
 
+    // Print system message when user joins or leaves a channel (optional param: https://stackoverflow.com/a/12797135/6297414)
+    var printSystemMessage = function(msg, username='') {
+        if (username === '') {
+            const p = document.createElement('p');
+            p.innerHTML = msg;
+            document.querySelector(".display-message-section").append(p);
+        } else {
+            const div = document.createElement('div');
+            div.className = "system-message";
+            const p = document.createElement('p');
+            const span = document.createElement('span');
+            span.className = "username";
+
+            span.innerHTML = username;
+            p.innerHTML = span.outerHTML + msg;
+            div.innerHTML = p.outerHTML;
+            document.querySelector(".display-message-section").append(div);
+        }
+        
+    };
+
     // Message wrapper
     var formatMessage = function(data) {
+        // Example of message to be formatted (a private message type):
+        // <div class="private-message">
+        //        <p><span class="username">nade</span> <span class="private">(Private)</span> <span class="timestamp">Jan 01, 2020 09:11 AM</span>
+        //        <br>To start a private message with me, just click my username to the right!</p>
+        //</div>
+        const div = document.createElement('div');
         const p = document.createElement('p');
         const span_username = document.createElement('span');
-        const br = document.createElement('br');
         const span_timestamp = document.createElement('span');
+        const br = document.createElement('br');
 
         span_username.innerHTML = data.username;
-        span_timestamp.innerHTML = data.timestamp;
-        p.innerHTML = span_username.innerHTML + br.outerHTML + data.msg + br.outerHTML + span_timestamp.innerHTML; // br is an object, br.outerHTML is str
+        span_username.className = "username";
 
-        document.querySelector("#display-message-section").append(p);
-    }
+        if (data.username === username) {
+            div.className = "my-message";
+        } else {
+            div.className = "others-message";
+        }
+
+        span_timestamp.innerHTML = data.timestamp;
+
+        if (data.private) {
+            const span_private = document.createElement('span');
+            span_private.className = "private";
+            span_private.innerHTML = "(Private)";
+            p.innerHTML = span_username.outerHTML + ' ' + span_private.outerHTML + ' ' + span_timestamp.outerHTML + br.outerHTML + data.msg;
+        } else {
+            p.innerHTML = span_username.outerHTML + ' ' + span_timestamp.outerHTML + br.outerHTML + data.msg;
+        }
+
+        div.innerHTML = p.outerHTML;
+        document.querySelector(".display-message-section").append(div);
+    };
 
     var formatTimeStamp = function() {
         // Reference: https://stackoverflow.com/a/46935603/6297414
         let options = {month: "short",  day: "numeric", hour: "2-digit", minute: "2-digit"};
         let date = new Date();
         return date.toLocaleDateString("en-us", options);
+    };
+
+    var formatChatHeader = function(channelName) {
+        //Sample: <h1 id="channel-name">You are in <span id="channel-name-content">Lounge<span></h1>
+        //Sample: <h1 id="channel-name">You can now talk with <span id="channel-name-content">Lounge<span> privately.</h1>
+        //printSystemMessage("You can now talk to " + toUser + " privately.");
+        const h1 = document.createElement('h1');
+        h1.id = "channel-name";
+        const span = document.createElement('span');
+        span.id = "channel-name-content"
+        span.innerHTML = channelName;
+
+        if (myStorage.privateMode === "false") {
+            h1.innerHTML = "You are in " + span.outerHTML;
+        } else if (myStorage.privateMode === "true") {
+            h1.innerHTML = "You can now talk with " + span.outerHTML + " privately.";
+        }
+
+        document.querySelector(".display-message-section").append(h1);
     }
 
     // When log out, forget about myStorage's currentChannel
