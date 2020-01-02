@@ -21,7 +21,7 @@ This Flack chat app is implemented using Python, [Flask](https://www.palletsproj
 3. The most recent 100 chat messages in any public channels will be saved.
 4. After closing the window and re-enter the chat url, the user is redirected back to their last seen channel.
 5. Messages sent in the chat app have timestamp and the username attached (with color schemes).
-6. Users can send private, 1-on-1 messages to other users (buggy since the private message will display on any channel that is on the the recipient's screen).
+6. Users can send private, 1-on-1 messages to other users (buggy since the private message will display on any channel that is on the the recipient's screen and there's no chat history for private messages).
 
 ## Setup
 ```
@@ -49,6 +49,10 @@ $ python application.py
 ## Features Not Implemented (Nice-to-Have's)
 1. The chat app is not responsive.
 2. The channel and user updates on the sidebar requires reloading the page.
+3. Move stored variables in the server file to a database.
+4. Store the history of private messages and load them when private messages are established.
+5. Allow users to delete their own messages.
+6. Allow users to upload and share files (as well as preview files).
 
 ## BUGS
 There is still a bug:
