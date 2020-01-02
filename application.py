@@ -140,7 +140,7 @@ def join(data):
     # Convert chatHistory from deque to list for JSON serialization: https://stackoverflow.com/a/5773404/6297414
     channelHistory = list(chatHistory[data["channel"]])
 
-    send({"msg": data["username"] + " has joined the channel " + data["channel"],
+    send({"username": data['username'], "msg": " has joined the channel " + data['channel'],
         "chatHistory": channelHistory}, room=data["channel"]) #only sends to data["room"]
 
 
@@ -150,7 +150,7 @@ def leave(data):
 
     leave_room(data['channel'])
 
-    send({"msg": data["username"] + " has left the channel " + data["channel"]}, room=data["channel"])
+    send({"username": data['username'], "msg": " has left the channel " + data['channel']}, room=data['channel'])
 
 
 @socketio.on("message")
@@ -167,7 +167,7 @@ def message(data):
 
     # If message is private, send to the correct user session id
     elif data['privateMode'] == 'true':
-        timestampedData = {"msg": data["msg"], "username": data["fromUser"], "timestamp": strftime("%b %d, %Y %I:%M %p", localtime())}
+        timestampedData = {"msg": data["msg"], "username": data["fromUser"], "timestamp": strftime("%b %d, %Y %I:%M %p", localtime()), "private": True}
         send(timestampedData, room=usernames[data["toUser"]])
 
 
