@@ -145,13 +145,13 @@ document.addEventListener("DOMContentLoaded", () => {
         myStorage.setItem("currentChannel", toUser);
         myStorage.setItem("privateMode", true);
 
+        // Clear message in display-message-section to start a new chat
+        document.querySelector(".display-message-section").innerHTML = '';
+        formatChatHeader(toUser);
+
         // Change heading in .display-message-section to the proper private channel name
         var channelHeading = document.querySelector("#channel-name-content");
         channelHeading.innerText = toUser;
-
-        // Clear message in display-message-section to start a new chat
-        document.querySelector(".display-message-section").innerHTML = '';
-        formatChatHeader(channelName);
 
         // Put autofocus on text box
         document.querySelector("#user-message").focus();
@@ -203,6 +203,7 @@ document.addEventListener("DOMContentLoaded", () => {
         span_timestamp.innerHTML = data.timestamp;
 
         if (data.private) {
+            div.className = "private-message";
             const span_private = document.createElement('span');
             span_private.className = "private";
             span_private.innerHTML = "(Private)";
