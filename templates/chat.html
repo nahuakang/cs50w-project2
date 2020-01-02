@@ -2,33 +2,69 @@
 
 {% block content %}
 
-    <div class="sidebar">
+    <nav class="sidebar">
         <!-- Button to create a new channel -->
-        <div class="channel create-channel"><a href="{{ url_for('create') }}"><p id="create-channel">+ Channel</p></a></div>
+        <div class="create-channel">
+            <a href="{{ url_for('create') }}">
+                <p id="create-channel"><strong><span>&#43;</span>Channel</strong></p>
+            </a>
+        </div>
+        
+        <hr>
 
         <!-- Sidebar List for Channels -->
         {% for channel in channels %}
             <div class="channel"><p class="select-channel">{{ channel }}</p></div>
         {% endfor %}
 
+        <hr>
+
         <!-- Sidebar List for Logged-In Users -->
         {% if usernames %}
-            <div class="channel create-channel"><p>Users Online:</p></div>
-            {% for username in usernames %}
-                <div class="channel"><p class="select-private-channel">{{ username }}</p></div>
-            {% endfor %}
+        <div id="users-list"><p><strong>Users Online:</strong></p></div>
+
+        <hr>
+
+        {% for username in usernames %}
+            <div class="channel"><p class="select-private-channel">{{ username }}</p></div>
+        {% endfor %}
         {% endif %}
-    </div>
+    </nav>
 
-    <h1 id="channel-name">This is channel <span id="channel-name-content">channel<span></h1>
-    
-    <div id="display-message-section">
+    <main class="display-message-section">
 
-    </div>
+        <!-- SAMPLE HEADER -->
+        <!-- <h1 id="channel-name">You are in <span id="channel-name-content">Lounge<span></h1> -->
+        
+        <!-- SAMPLE MESSAGE FORMATS -->
+        <!-- <div class="system-message">
+            <p><span class="username">nahua</span> has joined the channel Lounge</p>
+        </div>
+        
+        <div class="my-message">
+            <p><span class="username">nahua</span> <span class="timestamp">Jan 01, 2020 09:10 AM</span>
+                <br>Hello, World!</p>
+        </div>
+        
+        <div class="system-message">
+            <p><span class="username">nade</span> has joined the channel Lounge</p>
+        </div>
+        
+        <div class="others-message">
+            <p><span class="username">nade</span> <span class="timestamp">Jan 01, 2020 09:11 AM</span>
+                <br>Hello, Nahua!</p>
+        </div>
+            
+        <div class="private-message">
+            <p><span class="username">nade</span> <span class="private">(Private)</span> <span class="timestamp">Jan 01, 2020 09:11 AM</span>
+                <br>To start a private message with me, just click my username to the right!</p>
+        </div> -->
 
-    <div id="input-area">
+    </main>
 
-        <input type=text id="user-message" placeholder="Type here" autocomplete="off">
+    <div class="input-area">
+
+        <input type=text id="user-message" placeholder="Say something" autocomplete="off">
         <button type="button" id="send-message">Send</button>
 
     </div>

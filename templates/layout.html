@@ -18,33 +18,35 @@
     </title>
 </head>
 <body>
-
+    <div class="container">
     {% if session.username %}
-        <nav>
-            <ul>
-                <li><a href="#">FLACK</a></li>
+        <header class="header">
+            <ul class="logo-header">
+                <li>
+                    <a href="#" style="color: #347098;"><strong>FLACK</strong></a>
+                </li>
             </ul>
-            <ul class="user-tab">
+            <ul class="user-header">
                 <li>            
-                    <a href="#" style="color: #44BBA4;"> {{ session.username }} </a>
+                    <a href="#" style="color: #44BBA4;"><strong>{{ session.username }}</strong></a>
                 </li>
                 <li>
-                    <a id="logout" href="{{ url_for('logout') }}">Logout</a>
+                    <a id="logout" href="{{ url_for('logout') }}"><p id="logout-text"><strong>Logout</strong></p></a>
                 </li>
             </ul>
-        </nav>
+        </header>
     {% else %}
-        <nav>
-            <ul>
-                <li><a href={{ url_for('index') }}>FLACK</a></li>
+        <header class="header">
+            <ul class="logo-header">
+                <li>
+                    <a href="#" style="color: #347098;"><strong>FLACK</strong></a>
+                </li>
             </ul>
-        </nav>
+        </header>
     {% endif %}
 
-    <div class="wrapper">
-
-        {% block content %}
-        {% endblock %}
+    {% block content %}
+    {% endblock %}
 
     </div>
 
