@@ -8,7 +8,7 @@ body {
     margin: 0;
 }
 
-/* GRID CONTAINER AND ITEMS */
+/* CHAT - GRID CONTAINER AND ITEMS */
 .container {
     display: grid;
     grid-template-columns: 10% 10% auto 10% 10%;
@@ -53,7 +53,7 @@ body {
     grid-row: 3 / 4;
 }
 
-/* HEADER */
+/* CHAT - HEADER */
 .logo-header {
     grid-column: 1 / 2;
     display: grid;
@@ -90,7 +90,7 @@ body {
     color: #fff;
 }
 
-/* SIDEBAR & DISPLAY-MESSAGE-SECTION */
+/* CHAT - SIDEBAR & DISPLAY-MESSAGE-SECTION */
 .sidebar {
     padding: 10px 10px;
 }
@@ -140,7 +140,7 @@ body {
     cursor: pointer;
 }
 
-/* DISPLAY MESSAGE SECTION */
+/* CHAT - DISPLAY MESSAGE SECTION */
 .display-message-section {
     padding: 10px 10px;
 }
@@ -201,7 +201,7 @@ body {
     color: #fff;
 }
 
-/* USER INPUT AREA */
+/* CHAT - USER INPUT AREA */
 
 #send-message {
     height: 50px;
@@ -230,4 +230,10 @@ body {
     border: solid #DDDDDD 3px;
     border-radius: 10px;
     background:none;
+}
+
+/* SIGNIN - FORM */
+.sign-in {
+    grid-column: 3 / 4;
+    grid-row: 2 / 3;
 }
