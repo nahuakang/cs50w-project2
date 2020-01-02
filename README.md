@@ -5,7 +5,7 @@
 This Flack chat app is implemented using Python, [Flask](https://www.palletsprojects.com/p/flask/) framework, and Miguel Grinberg's [Flask-SocketIO](https://flask-socketio.readthedocs.io/en/latest/) on the server side, and vanilla Javascript as well as [SocketIO](https://socket.io/) on the client side.
 
 ## My Flack App Screenshot
-![Screenshot](https://github.com/nahuakang/cs50w-project2/blob/master/static/screenshot.png | width=500)
+<img src="https://github.com/nahuakang/cs50w-project2/blob/master/static/screenshot.png" width="500">
 
 ## Usage
 1. Sign in with a username (no registration required)
